@@ -3,3 +3,5 @@ jupyterlab
 opencv-python
 numpy
 supervision
+scikit-learn
+pandas
