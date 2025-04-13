@@ -10,7 +10,7 @@ from player_ball_assigner import PlayerBallAssigner
 def main():
     # Example usage of read_video and save_video functions
     video_path = "sample_data/08fd33_4.mp4"
-    output_path = "output_video/output_video.avi"
+    output_path = "output_videos/output_video.avi"
 
     tracker = Tracker("models/weights/best.pt")
 
@@ -62,7 +62,7 @@ def main():
 
     #     cropped_image = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
 
-    #     cv2.imwrite(f"output_video/cropped_player_{track_id}.jpg", cropped_image)
+    #     cv2.imwrite(f"output_videos/cropped_player_{track_id}.jpg", cropped_image)
     #     break
 
     # FIXME: We need to have another generator here because we used up the first one for tracks
