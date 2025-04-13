@@ -1,10 +1,10 @@
 # Training
 
-- [ ] Automatically move the trained model into models/{train run name}
-- [ ] Get more training datasets 
-- [ ] Figure out how to combine multiple datasets
-- [ ] Try different resolutions
-- [ ] Automate labeling of a video (to make labeling mainly just checking if it's correct)
+- [x] Integrate ML backend for auto labeling
+- [x] Automatically move the trained model into models/{train run name}
+- [x] Try different resolutions
+- [x] Automate labeling of a video (to make labeling mainly just checking if it's correct)
+- [ ] Add mlflow for monitoring the training
 
 # General
 

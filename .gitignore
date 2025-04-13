@@ -9,3 +9,6 @@ yolo11*.pt
 runs/**
 .env
 training/football*/**
+*.out
+label-studio-ml-backend
+datasets/
