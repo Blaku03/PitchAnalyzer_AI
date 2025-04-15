@@ -11,8 +11,9 @@ def main():
     # Example usage of read_video and save_video functions
     video_path = "sample_data/08fd33_4.mp4"
     output_path = "output_videos/output_video.avi"
+    model_path = "./models/v1_1large/v1_1.pt"
 
-    tracker = Tracker("models/weights/best.pt")
+    tracker = Tracker(model_path)
 
     # Make sure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -21,7 +22,7 @@ def main():
     frame_generator = read_video(video_path)
 
     tracks = tracker.get_object_tracks(
-        frame_generator, read_from_stub=True, stub_path="stubs/track_stubs.pkl"
+        frame_generator, read_from_stub=False, stub_path="stubs/track_stubs.pkl"
     )
 
     # Interpolate ball positions
