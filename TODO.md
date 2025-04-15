@@ -11,7 +11,7 @@ With that data we can display ball possession, number of passes and current play
 - [x] Try different resolutions
 - [x] Automate labeling of a video (to make labeling mainly just checking if it's correct)
 - [ ] Label test photos ~900
-- [ ] Add mlflow for monitoring the training
+- [x] Add mlflow for monitoring the training
 
 ## Augmentation
 
