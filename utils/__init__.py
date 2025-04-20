@@ -6,3 +6,4 @@ from .bbox_utils import (
     measure_xy_distance,
     get_foot_position,
 )
+from .import_models import ModelImporter
