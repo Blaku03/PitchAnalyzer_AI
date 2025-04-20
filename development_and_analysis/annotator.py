@@ -4,7 +4,7 @@ from trackers import Tracker
 import itertools
 import cv2
 from team_assigner import TeamAssigner
-from player_ball_assigner import PlayerBallAssigner
+from assigners import PlayerBallAssigner
 
 
 def main():

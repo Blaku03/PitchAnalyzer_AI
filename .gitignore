@@ -12,3 +12,6 @@ training/football*/**
 *.out
 label-studio-ml-backend
 datasets/
+.DS_store
+stubs/
+output_videos/
