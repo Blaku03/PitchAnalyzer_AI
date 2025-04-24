@@ -1,22 +1,27 @@
 from ultralytics import YOLO
+import itertools
+import pdb
 import cv2
 import supervision as sv
 import pickle
-import sys
 import os
 import numpy as np
 import pandas as pd
+from pathlib import Path
+from typing import Generator
 
-sys.path.append("../")
-from utils import get_center_of_bbox, get_bbox_width
+from assigners.team_assigner import TeamAssigner
+from model_dataclasses.player_detection import PDetectionSchema, PlayerDetection
+from utils.bbox_utils import get_bbox_width, get_center_of_bbox
 
 
-class Tracker:
-    def __init__(self, model_path):
+class PlayerDetector:
+    def __init__(self, model_path: Path):
         self.model = YOLO(model_path)
-        self.tracker = sv.ByteTrack()
 
-    def detect_frames(self, frame_gen, batch_size=20):
+    def _detect_objects_in_frame(
+        self, frame_generator: Generator, batch_size=20
+    ) -> Generator:
         """
         Detect objects in a sequence of frames using batch processing.
         Args:
@@ -33,7 +38,7 @@ class Tracker:
                 yield result
 
         batch = []
-        for frame in frame_gen:
+        for frame in frame_generator:
             batch.append(frame)
             if len(batch) == batch_size:
                 yield from process_batch(batch)
@@ -42,6 +47,70 @@ class Tracker:
         # Handle any remaining frames
         if batch:
             yield from process_batch(batch)
+
+    def get_detections_from_frames(self, frame_generator: Generator) -> pd.DataFrame:
+        """
+        Detect objects in a video stream and return results as a DataFrame.
+        Args:
+            frame_gen (generator): A generator yielding video frames.
+
+        Returns:
+            pd.DataFrame: DataFrame containing detection results.
+        """
+        tracker = sv.ByteTrack()
+        team_assigner = TeamAssigner()
+        players_detections: list[PlayerDetection] = []
+
+        # Duplicate the generator
+        frame_gen1, frame_gen2 = itertools.tee(frame_generator)
+        loop_frame_generator = frame_gen1
+        frame_generator_detector = frame_gen2
+
+        detections_in_frame_generator = self._detect_objects_in_frame(
+            frame_generator_detector
+        )
+
+        for frame_num, detections in enumerate(detections_in_frame_generator):
+            current_frame_detections: list[PlayerDetection] = []
+            current_frame = next(loop_frame_generator)
+
+            detection_supervision = sv.Detections.from_ultralytics(detections)
+            detection_with_tracks = tracker.update_with_detections(
+                detection_supervision
+            )
+
+            for i in range(len(detection_with_tracks)):
+                current_frame_detections.append(
+                    PlayerDetection(
+                        frame=frame_num,
+                        track_id=detection_with_tracks.tracker_id[i],
+                        cls=detection_with_tracks.data["class_name"][i],
+                        team=None,
+                        confidence=detection_with_tracks.confidence[i],
+                        bbox=(
+                            detection_with_tracks.xyxy[i][0],
+                            detection_with_tracks.xyxy[i][1],
+                            detection_with_tracks.xyxy[i][2],
+                            detection_with_tracks.xyxy[i][3],
+                        ),
+                    )
+                )
+
+            if frame_num == 0:
+                # Initialize the TeamAssigner with the first frame
+                team_assigner.initialize_assigner(
+                    current_frame, current_frame_detections
+                )
+
+            # Assign team to players
+            for player_detection in current_frame_detections:
+                player_detection.team = team_assigner.get_player_team(
+                    current_frame, player_detection
+                )
+            players_detections.extend(current_frame_detections)
+            break
+
+        return PDetectionSchema.to_df(players_detections)
 
     def interpolate_ball_positions(self, ball_positions):
         ball_positions = [x.get(1, {}).get("bbox", []) for x in ball_positions]
@@ -60,7 +129,6 @@ class Tracker:
         return ball_positions
 
     def get_object_tracks(self, frame_gen, read_from_stub=False, stub_path=None):
-
         if read_from_stub and stub_path and os.path.exists(stub_path):
             with open(stub_path, "rb") as stub_file:
                 tracks = pickle.load(stub_file)

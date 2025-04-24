@@ -1,10 +1,5 @@
-from utils import read_video, save_video
 import os
-from trackers import Tracker
-import itertools
-import cv2
-from team_assigner import TeamAssigner
-from assigners import PlayerBallAssigner
+from ..trackers.player_detector import PlayerDetector
 
 
 def main():
@@ -13,7 +8,7 @@ def main():
     output_path = "output_videos/output_video.avi"
     model_path = "./models/v1_1large/v1_1.pt"
 
-    tracker = Tracker(model_path)
+    tracker = PlayerDetector(model_path)
 
     # Make sure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -21,9 +16,7 @@ def main():
     # Create generator of video frames
     frame_generator = read_video(video_path)
 
-    tracks = tracker.get_object_tracks(
-        frame_generator, read_from_stub=False, stub_path="stubs/track_stubs.pkl"
-    )
+    tracks = tracker.get_detections_from_frames(frame_generator)
 
     # Interpolate ball positions
     tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
