@@ -1,4 +1,5 @@
 import cv2
+from pathlib import Path
 
 
 def read_video(video_path):
@@ -11,6 +12,9 @@ def read_video(video_path):
     Yields:
         numpy.ndarray: The next frame in the video.
     """
+    if not Path(video_path).exists():
+        raise FileNotFoundError(f"Video file {video_path} not found.")
+
     video = cv2.VideoCapture(video_path)
     try:
         while True:
