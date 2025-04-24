@@ -24,7 +24,7 @@ With that data we can display ball possession, number of passes and current play
 
 ## Processing the predictions
 
-- [ ] Fix the frame generator in tracker (probably combine the functions).
+- [x] Fix the frame generator in tracker (probably combine the functions).
 - [ ] Fix the ball assigner (currently it's just assigning based on left and right distance it should also take into account y)
 
 ## Computer vision drawing
@@ -33,7 +33,7 @@ With that data we can display ball possession, number of passes and current play
 
 ## General
 
-- [ ] Change the magic ditcs used for managing data into some more readable format like classes
+- [x] Change the magic ditcs used for managing data into some more readable format like classes
 
 # Milestone 2
 

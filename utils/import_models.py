@@ -15,8 +15,8 @@ class ModelImporter:
 
     def download_field_model(self, model_name: str = "field_recognitionv1_0") -> str:
         print("Downloading field recognition model...")
-        return self.download_kaggle_model(model_name)
+        return self.download_kaggle_model(model_name) + "/best_final.pt"
 
     def download_player_model(self, model_name: str = "player_detectionv1_1") -> str:
         print("Downloading player detection model...")
-        return self.download_kaggle_model(model_name)
+        return self.download_kaggle_model(model_name) + "/v1_1.pt"
