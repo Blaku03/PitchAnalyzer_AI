@@ -108,7 +108,6 @@ class PlayerDetector:
                     current_frame, player_detection
                 )
             players_detections.extend(current_frame_detections)
-            break
 
         return PDetectionSchema.to_df(players_detections)
 
