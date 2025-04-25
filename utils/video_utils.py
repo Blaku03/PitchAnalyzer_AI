@@ -1,8 +1,9 @@
 import cv2
 from pathlib import Path
+from typing import Generator
 
 
-def read_video(video_path):
+def read_video(video_path: Path) -> Generator:
     """
     Read a video file and yield its frames one by one.
 
@@ -26,13 +27,13 @@ def read_video(video_path):
         video.release()
 
 
-def save_video(frame_generator, output_path, fps=30):
+def save_video(frame_generator: Generator, output_path: Path, fps: int = 30) -> int:
     """
     Save video frames to a file.
 
     Args:
         frame_generator (generator): A generator yielding video frames.
-        output_path (str): Path to save the output video.
+        output_path (Path): Path to save the output video.
         fps (int): Frames per second for the output video.
 
     Returns:
