@@ -1,11 +1,8 @@
 import kagglehub
-from pathlib import Path
 
 
 class ModelImporter:
     def __init__(self):
-        self.models_path = Path("../models").resolve()
-        self.models_path.mkdir(exist_ok=True)
         self.kagglehub_link = "blaku03/player-detection/pyTorch"
 
     def download_kaggle_model(self, model_name: str) -> str:
