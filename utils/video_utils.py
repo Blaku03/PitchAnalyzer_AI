@@ -22,7 +22,8 @@ def read_video(video_path: Path) -> Generator:
             ret, frame = video.read()
             if not ret:
                 break
-            yield frame
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            yield frame_rgb
     finally:
         video.release()
 

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Generator
 
 from assigners.team_assigner import TeamAssigner
-from model_dataclasses.player_detection import PDetectionSchema, PlayerDetection
+from model_dataclasses.player_detection import PlayersDetections
 from utils.bbox_utils import get_bbox_width, get_center_of_bbox
 
 
@@ -59,7 +59,7 @@ class PlayerDetector:
         """
         tracker = sv.ByteTrack()
         team_assigner = TeamAssigner()
-        players_detections: list[PlayerDetection] = []
+        all_frames_players_detections: list[PlayersDetections] = []
 
         # Duplicate the generator
         frame_gen1, frame_gen2 = itertools.tee(frame_generator)
@@ -71,45 +71,32 @@ class PlayerDetector:
         )
 
         for frame_num, detections in enumerate(detections_in_frame_generator):
-            current_frame_detections: list[PlayerDetection] = []
             current_frame = next(loop_frame_generator)
 
             detection_supervision = sv.Detections.from_ultralytics(detections)
             detection_with_tracks = tracker.update_with_detections(
                 detection_supervision
             )
-
-            for i in range(len(detection_with_tracks)):
-                current_frame_detections.append(
-                    PlayerDetection(
-                        frame=frame_num,
-                        track_id=detection_with_tracks.tracker_id[i],
-                        cls=detection_with_tracks.data["class_name"][i],
-                        team=None,
-                        confidence=detection_with_tracks.confidence[i],
-                        bbox=(
-                            detection_with_tracks.xyxy[i][0],
-                            detection_with_tracks.xyxy[i][1],
-                            detection_with_tracks.xyxy[i][2],
-                            detection_with_tracks.xyxy[i][3],
-                        ),
-                    )
-                )
+            current_frame_players_detections = PlayersDetections(
+                detection_with_tracks, frame_num
+            )
 
             if frame_num == 0:
                 # Initialize the TeamAssigner with the first frame
                 team_assigner.initialize_assigner(
-                    current_frame, current_frame_detections
+                    current_frame, current_frame_players_detections
                 )
 
             # Assign team to players
-            for player_detection in current_frame_detections:
-                player_detection.team = team_assigner.get_player_team(
-                    current_frame, player_detection
-                )
-            players_detections.extend(current_frame_detections)
+            teams_arr = team_assigner.get_players_teams(
+                current_frame, current_frame_players_detections
+            )
+            current_frame_players_detections.team = teams_arr
 
-        return PDetectionSchema.to_df(players_detections)
+            all_frames_players_detections.append(current_frame_players_detections)
+            break
+
+        return all_frames_players_detections
 
     def interpolate_ball_positions(self, ball_positions):
         ball_positions = [x.get(1, {}).get("bbox", []) for x in ball_positions]

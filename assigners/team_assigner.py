@@ -1,8 +1,9 @@
+import pdb
 from typing import Tuple
 import numpy as np
 from sklearn.cluster import KMeans
 
-from model_dataclasses.player_detection import PlayerDetection
+from model_dataclasses.player_detection import PlayersDetections
 
 
 class TeamAssigner:
@@ -27,9 +28,7 @@ class TeamAssigner:
 
         return kmeans
 
-    def _get_player_color(
-        self, frame: np.array, bbox: Tuple[float, float, float, float]
-    ):
+    def _get_player_color(self, frame: np.array, bbox: np.array):
         """
         Get the color of the player in the given bounding box.
         Args:
@@ -68,21 +67,22 @@ class TeamAssigner:
         return player_color
 
     def initialize_assigner(
-        self, frame: np.array, frame_player_detections: list[PlayerDetection]
+        self, frame: np.array, frame_player_detections: PlayersDetections
     ):
         """
         Initialize the team assigner with the first frame and player detections.
         This method uses K-means clustering to determine the team colors based on the player detections.
         Args:
             frame: The current video frame.
-            player_detections_df: DataFrame containing player detections with bounding boxes for that frame.
+            frame_player_detections: The player detection object containing the bounding box and other information.
         """
         player_colors = []
 
-        for player_detection in frame_player_detections:
-            if player_detection.cls != "player":
+        for idx in range(len(frame_player_detections.detections)):
+            detection = frame_player_detections.detections[idx]
+            if detection.data["class_name"] != "player":
                 continue
-            player_color = self._get_player_color(frame, player_detection.bbox)
+            player_color = self._get_player_color(frame, detection.xyxy.flatten())
             player_colors.append(player_color)
 
         kmeans = KMeans(n_clusters=2, init="k-means++", n_init=10)
@@ -92,30 +92,37 @@ class TeamAssigner:
         self.team_colors[1] = kmeans.cluster_centers_[0]
         self.team_colors[2] = kmeans.cluster_centers_[1]
 
-    def get_player_team(
-        self, frame: np.array, player_detection: PlayerDetection
-    ) -> int:
+    def get_players_teams(
+        self, frame: np.array, frame_player_detections: PlayersDetections
+    ) -> np.array:
         """
         Get the team of the player based on the bounding box and K-means clustering.
         Args:
             frame: The current video frame.
-            player_bbox: The bounding box of the player in the format (x_min, y_min, x_max, y_max).
-            player_id: The ID of the player.
+            frame_player_detections: The player detection object containing the bounding box and other information.
         Returns:
-            int: The team ID of the player.
+            np.array: List of team IDs for the players in the current frame.
         """
-        if player_detection.cls != "player":
-            return None
 
-        # Check if the player ID is already assigned a team
-        if player_detection.track_id in self.player_team_dict:
-            return self.player_team_dict[player_detection.track_id]
+        n_detections = len(frame_player_detections.detections)
+        players_teams = np.full(n_detections, None, dtype=object)
 
-        player_color = self._get_player_color(frame, player_detection.bbox)
+        for idx in range(n_detections):
+            player_detection = frame_player_detections.detections[idx]
+            if player_detection.data["class_name"] != "player":
+                continue
 
-        team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
-        team_id += 1
-
-        self.player_team_dict[player_detection.track_id] = team_id
-
-        return team_id
+            # Check if the player ID is already assigned a team
+            if player_detection.tracker_id[0] in self.player_team_dict:
+                players_teams[idx] = self.player_team_dict[
+                    player_detection.tracker_id[0]
+                ]
+                continue
+            player_color = self._get_player_color(
+                frame, player_detection.xyxy.flatten()
+            )
+            team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
+            team_id += 1
+            self.player_team_dict[player_detection.tracker_id[0]] = team_id
+            players_teams[idx] = team_id
+        return players_teams
