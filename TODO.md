@@ -15,12 +15,13 @@ With that data we can display ball possession, number of passes and current play
 
 ## Augmentation
 
-- [ ] Do research about possible augmentations that would be useful for this task [good place to start with this task](https://www.kaggle.com/competitions/dfl-bundesliga-data-shootout/discussion/360331) and later fill this section with tasks
-
+- [ ] Do research about possible augmentations that would be useful for this task [good place to start with this task](https://www.kaggle.com/competitions/dfl-bundesliga-data-shootout/discussion/360331) and later fill this section with tasks. Consider using (albumentations)[https://github.com/albumentations-team/albumentations] for augmentations.
+- [ ] Read more about augmentatinos that YOLO does automaticlly and see if we can adjust it or add more augmentations.
 
 ## Player prediction model
 
-- [ ] Use UMAP for dimensionality reduction and SigLIP for clustering instead of KMeans [instruction video](https://youtu.be/aBVGKoNZQUw?si=l8EIqtp8bc44Hj3m&t=1778)
+- [ ] Use UMAP for dimensionality reduction and SigLIP for clustering instead of KMeans [instruction video](https://youtu.be/aBVGKoNZQUw?si=l8EIqtp8bc44Hj3m&t=1778). It's important to note that UMAP is not a clustering algorithm, but it can be used for dimensionality reduction before applying a clustering algorithm like KMeans. The idea is to first reduce the dimensionality of the data using UMAP, and then apply KMeans on the reduced data.
+- [ ] Currently we initialize the KMeans based on the first frame, so if the predictions are wrong in the first frame, the KMeans will be wrong for the rest of the video. Worth to try would be to use YOLO predicitons as suggestions and use Kmeans to cluster the predictions for 4 groups (each player separately).
 
 ## Processing the predictions
 
@@ -29,7 +30,7 @@ With that data we can display ball possession, number of passes and current play
 
 ## Computer vision drawing
 
-- [ ] Use supervision pacakge instead of all the manual drawing (if the package is not good enough then we can always go back to the manual drawing)
+- [x] Use supervision pacakge instead of all the manual drawing (if the package is not good enough then we can always go back to the manual drawing)
 
 ## General
 
