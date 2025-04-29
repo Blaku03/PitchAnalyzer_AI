@@ -55,7 +55,6 @@ class PlayerDetector:
         """
         tracker = sv.ByteTrack()
         team_assigner = TeamAssigner()
-        all_frames_players_detections: list[PlayersDetections] = []
 
         # Duplicate the generator
         frame_gen1, frame_gen2 = itertools.tee(frame_generator)
