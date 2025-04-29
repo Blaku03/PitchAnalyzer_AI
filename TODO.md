@@ -21,8 +21,14 @@ With that data we can display ball possession, number of passes and current play
 ## Player prediction model
 
 - [ ] Use UMAP for dimensionality reduction and SigLIP for clustering instead of KMeans [instruction video](https://youtu.be/aBVGKoNZQUw?si=l8EIqtp8bc44Hj3m&t=1778). It's important to note that UMAP is not a clustering algorithm, but it can be used for dimensionality reduction before applying a clustering algorithm like KMeans. The idea is to first reduce the dimensionality of the data using UMAP, and then apply KMeans on the reduced data.
-- [ ] Currently we initialize the KMeans based on the first frame, so if the predictions are wrong in the first frame, the KMeans will be wrong for the rest of the video. Worth to try would be to use YOLO predicitons as suggestions and use Kmeans to cluster the predictions for 4 groups (each player separately).
+- [x] Currently we initialize the KMeans based on the first frame, so if the predictions are wrong in the first frame, the KMeans will be wrong for the rest of the video. 
 
+## Goalkeeper and Referee tracking
+
+- [ ] Assign goalkeeper to a team based on a distances to middles of teams [instruction video] (https://www.youtube.com/watch?v=aBVGKoNZQUw&t=2700s).
+
+- [ ] Do we need a third cluster for a referee recognistion? How to distinguish him from a goalkeeper in terms of a color of a shirt?
+ 
 ## Processing the predictions
 
 - [x] Fix the frame generator in tracker (probably combine the functions).
