@@ -1,5 +1,5 @@
 import pdb
-from typing import Tuple
+from typing import List, Tuple
 import numpy as np
 from sklearn.cluster import KMeans
 
@@ -22,11 +22,11 @@ class TeamAssigner:
         # Reshape the image to 2D array
         image_2d = image.reshape(-1, 3)
 
-        # Preform K-means with 2 clusters
-        kmeans = KMeans(n_clusters=2, init="k-means++", n_init=1)
-        kmeans.fit(image_2d)
+        # Perform K-means with 2 clusters
+        shirt_kmeans = KMeans(n_clusters=2, init="k-means++", n_init=1)
+        shirt_kmeans.fit(image_2d)
 
-        return kmeans
+        return shirt_kmeans
 
     def _get_player_color(self, frame: np.array, bbox: np.array):
         """
@@ -42,10 +42,10 @@ class TeamAssigner:
         top_half_image = image[0 : int(image.shape[0] / 2), :]
 
         # Get Clustering model
-        kmeans = self._get_clustering_model(top_half_image)
+        shirt_kmeans = self._get_clustering_model(top_half_image)
 
         # Get the cluster labels for each pixel
-        labels = kmeans.labels_
+        labels = shirt_kmeans.labels_
 
         # Reshape the labels to the image shape
         clustered_image = labels.reshape(
@@ -62,35 +62,40 @@ class TeamAssigner:
         non_player_cluster = max(set(corner_clusters), key=corner_clusters.count)
         player_cluster = 1 - non_player_cluster
 
-        player_color = kmeans.cluster_centers_[player_cluster]
+        player_color = shirt_kmeans.cluster_centers_[player_cluster]
 
         return player_color
 
     def initialize_assigner(
-        self, frame: np.array, frame_player_detections: PlayersDetections
+        self,
+        frames: List[np.ndarray],
+        player_detections: List[PlayersDetections],
+        n_clusters: int = 2
     ):
         """
-        Initialize the team assigner with the first frame and player detections.
+        Initialize the team assigner with sample frames and player detections.
         This method uses K-means clustering to determine the team colors based on the player detections.
         Args:
-            frame: The current video frame.
-            frame_player_detections: The player detection object containing the bounding box and other information.
+            frames: A list of video frames.
+            player_detections: A list of corresponding player detections for each frame.
+            n_clusters: The number of clusters to use for K-means.
         """
         player_colors = []
+        for frame, pd in zip(frames, player_detections):
+            dets = pd.detections
+            class_names = dets.data.get("class_name", [])
+            for i, cls in enumerate(class_names):
+                if cls != "player":
+                    continue
+                bbox = dets.xyxy[i]
+                color = self._get_player_color(frame, bbox)
+                player_colors.append(color)
 
-        for idx in range(len(frame_player_detections.detections)):
-            detection = frame_player_detections.detections[idx]
-            if detection.data["class_name"] != "player":
-                continue
-            player_color = self._get_player_color(frame, detection.xyxy.flatten())
-            player_colors.append(player_color)
-
-        kmeans = KMeans(n_clusters=2, init="k-means++", n_init=10)
-        kmeans.fit(player_colors)
-
-        self.kmeans = kmeans
-        self.team_colors[1] = kmeans.cluster_centers_[0]
-        self.team_colors[2] = kmeans.cluster_centers_[1]
+        team_kmeans = KMeans(n_clusters=n_clusters, init="k-means++", n_init=10)
+        team_kmeans.fit(player_colors)
+        self.kmeans = team_kmeans
+        for i in range(n_clusters):
+            self.team_colors[i + 1] = team_kmeans.cluster_centers_[i]
 
     def get_players_teams(
         self, frame: np.array, frame_player_detections: PlayersDetections
