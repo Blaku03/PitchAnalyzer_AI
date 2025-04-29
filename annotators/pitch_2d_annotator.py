@@ -1,5 +1,5 @@
 import numpy as np
-from annotators.pitch_utils import draw_pitch, draw_points_on_pitch
+from utils.pitch_utils import draw_pitch, draw_points_on_pitch
 from mapping_2d.soccer_field import SoccerPitchConfiguration
 from model_dataclasses.player_detection import PlayersDetections
 import supervision as sv
@@ -53,7 +53,6 @@ class Pitch2DAnnotator:
             pitch_img=field_2d_img,
         )
 
-        # pdb.set_trace()
         team1_mask = players_detections.team == 1
         team1_color = "#FF0000"
         field_2d_img = Pitch2DAnnotator.color_pitch_points(
