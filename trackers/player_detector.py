@@ -1,9 +1,11 @@
+import random
 from ultralytics import YOLO
 import itertools
 import supervision as sv
 import pandas as pd
+import numpy as np
 from pathlib import Path
-from typing import Generator
+from typing import Generator, List, Tuple
 
 from assigners.team_assigner import TeamAssigner
 from model_dataclasses.player_detection import PlayersDetections
@@ -42,6 +44,49 @@ class PlayerDetector:
         if batch:
             yield from process_batch(batch)
 
+    def get_sample_frames(
+        self,
+        frame_generator: Generator,
+        samples_num: int = 10
+    ) -> Tuple[List[np.ndarray], List[PlayersDetections]]:
+        """
+        Sample N random frames from a video stream 
+        (using reservoir sampling [https://en.wikipedia.org/wiki/Reservoir_sampling]),
+        then detect & track those frames.
+
+        Args:
+            frame_generator: A generator yielding video frames.
+            samples_num:     Number of frames to sample.
+
+        Returns:
+            sampled_frames:            List of the sampled frame images.
+            sampled_players_detections: List of PlayersDetections for those frames.
+        """
+        # Reservoir‐sample raw frames
+        reservoir: List[Tuple[np.ndarray,int]] = []
+        for i, frame in enumerate(frame_generator, start=1):
+            if len(reservoir) < samples_num:
+                reservoir.append((frame, i))
+            else:
+                j = random.randint(1, i)
+                if j <= samples_num:
+                    reservoir[j-1] = (frame, i)
+
+        sampled_frames, frame_indices = zip(*reservoir)
+
+        # Run detection+tracking on those sampled frames
+        det_gen = self._detect_objects_in_frame(iter(sampled_frames))
+        tracker = sv.ByteTrack()
+
+        sampled_players_detections: List[PlayersDetections] = []
+        for frame, raw_dets, idx in zip(sampled_frames, det_gen, frame_indices):
+            sup             = sv.Detections.from_ultralytics(raw_dets)
+            det_with_tracks = tracker.update_with_detections(sup)
+            pd              = PlayersDetections(det_with_tracks, frame=idx)
+            sampled_players_detections.append(pd)
+
+        return list(sampled_frames), list(sampled_players_detections)
+
     def get_detections_from_frames(
         self, frame_generator: Generator
     ) -> Generator[PlayersDetections, None, None]:
@@ -58,12 +103,21 @@ class PlayerDetector:
         all_frames_players_detections: list[PlayersDetections] = []
 
         # Duplicate the generator
-        frame_gen1, frame_gen2 = itertools.tee(frame_generator)
+        frame_gen1, frame_gen2, frame_gen3 = itertools.tee(frame_generator, 3)
         loop_frame_generator = frame_gen1
         frame_generator_detector = frame_gen2
+        assigner_training_generator = frame_gen3
 
         detections_in_frame_generator = self._detect_objects_in_frame(
             frame_generator_detector
+        )
+
+        # get sample frames for team assigner training
+        sample_frames, sample_player_detections = self.get_sample_frames(
+            assigner_training_generator, samples_num=10
+        )
+        team_assigner.initialize_assigner(
+            sample_frames, sample_player_detections
         )
 
         for frame_num, detections in enumerate(detections_in_frame_generator):
@@ -76,12 +130,6 @@ class PlayerDetector:
             current_frame_players_detections = PlayersDetections(
                 detection_with_tracks, frame_num
             )
-
-            if frame_num == 0:
-                # Initialize the TeamAssigner with the first frame
-                team_assigner.initialize_assigner(
-                    current_frame, current_frame_players_detections
-                )
 
             # Assign team to players
             teams_arr = team_assigner.get_players_teams(
