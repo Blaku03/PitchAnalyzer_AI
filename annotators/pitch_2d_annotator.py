@@ -46,7 +46,7 @@ class Pitch2DAnnotator:
         )
 
         ball_mask = players_detections.detections.data["class_name"] == "ball"
-        ball_color = "#FF1493"
+        ball_color = "#FFA500"
         field_2d_img = Pitch2DAnnotator.color_pitch_points(
             masked_xy_points=xy_points[ball_mask],
             color=ball_color,
