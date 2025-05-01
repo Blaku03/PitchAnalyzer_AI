@@ -97,7 +97,7 @@ class TeamAssigner:
             self.team_colors[i + 1] = team_kmeans.cluster_centers_[i]
 
     def get_players_teams(
-        self, frame: np.array, frame_player_detections: PlayersDetections
+        self, frame: np.array, frame_players_detections: sv.Detections
     ) -> np.array:
         """
         Get the team of the player based on the bounding box and K-means clustering.
@@ -108,11 +108,11 @@ class TeamAssigner:
             np.array: List of team IDs for the players in the current frame.
         """
 
-        n_detections = len(frame_player_detections.players_detections)
+        n_detections = len(frame_players_detections)
         players_teams = np.full(n_detections, None, dtype=object)
 
         for idx in range(n_detections):
-            player_detection = frame_player_detections.players_detections[idx]
+            player_detection = frame_players_detections[idx]
             if player_detection.data["class_name"] != "player":
                 continue
 

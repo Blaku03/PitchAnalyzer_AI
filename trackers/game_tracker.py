@@ -85,8 +85,6 @@ class GameTracker:
 
     def _process_ball_detections(self, ball_dets: sv.Detections) -> sv.Detections:
         """Convert and track ball detections using Norfair tracker"""
-        if not self.ball_tracker:
-            return sv.Detections.empty()
 
         # Convert to Norfair detections
         norfair_dets = [
@@ -159,9 +157,9 @@ class GameTracker:
             players, ball = self._process_frame_detections(detections)
 
             player_detection = PlayersDetections(
-                players=players,
-                ball=ball,
-                frame_number=frame_num,
+                players_detections=players,
+                ball_detection=ball,
+                frame=frame_num,
                 team=self.team_assigner.get_players_teams(frame, players),
             )
 
