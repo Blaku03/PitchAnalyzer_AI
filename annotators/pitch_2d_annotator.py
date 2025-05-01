@@ -1,3 +1,4 @@
+from typing import Generator
 import numpy as np
 from utils.pitch_utils import draw_pitch, draw_points_on_pitch
 from mapping_2d.soccer_field import SoccerPitchConfiguration
@@ -70,3 +71,14 @@ class Pitch2DAnnotator:
         )
 
         return field_2d_img
+
+    @classmethod
+    def annotate_video(
+        cls,
+        xy_points_generator: Generator,
+        players_detections_generator: Generator[PlayersDetections, None, None],
+    ) -> Generator:
+        for xy_points, players_detections in zip(
+            xy_points_generator, players_detections_generator
+        ):
+            yield cls.annotate_frame(xy_points.xy[0], players_detections)
