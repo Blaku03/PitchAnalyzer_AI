@@ -6,10 +6,10 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from typing import Generator, List, Tuple
-
+from norfair import Tracker, Detection
 from assigners.team_assigner import TeamAssigner
 from model_dataclasses.player_detection import PlayersDetections
-
+import pdb
 
 class PlayerDetector:
     def __init__(self, model_path: Path):
@@ -82,71 +82,118 @@ class PlayerDetector:
             sampled_players_detections.append(sup)
 
         return list(sampled_frames), list(sampled_players_detections)
-
+    
     def get_detections_from_frames(
         self, frame_generator: Generator
     ) -> Generator[PlayersDetections, None, None]:
         """
-        Detect objects in a video stream and return results as a DataFrame.
+        Detect objects in a video stream and return results with player and ball detections.
         Args:
-            frame_gen (generator): A generator yielding video frames.
-
+            frame_generator (Generator): A generator yielding video frames.
+    
         Returns:
-            generator: A generator yielding DataFrames with detection results.
+            Generator: A generator yielding PlayersDetections with player and ball info.
         """
+        # Player tracker using ByteTrack
         player_tracker = sv.ByteTrack(
-            lost_track_buffer=60, minimum_matching_threshold=0.4
+            track_activation_threshold=0.4,  # Threshold for player tracks
+            minimum_matching_threshold=0.4,  # Matching threshold for players
+            lost_track_buffer=60            # Buffer for player tracks
         )
-        ball_tracker = sv.ByteTrack(
-                track_thresh=0.05,    # Very low to catch weak ball detections
-                match_thresh=0.25,    # Loose IoU matching for ball
-                track_buffer=100,     # Long buffer to maintain ball tracks
-                frame_rate=30         # Adjust based on your video's frame rate
-            )
         team_assigner = TeamAssigner()
-
-        # Duplicate the generator
+    
+        # Norfair tracker for the ball
+        def distance_function(detection, track):
+            det_center = detection.points  # Single 2D point (center of bbox)
+            track_center = track.estimate
+            return np.linalg.norm(det_center - track_center)
+    
+        ball_tracker = Tracker(
+            distance_function=distance_function,
+            distance_threshold=50,  # Adjust based on ball speed and frame rate
+            initialization_delay=0,  # Start tracking immediately
+            hit_counter_max=100     # Keep track for 100 frames without detection
+        )
+    
+        # Duplicate the generator for frame processing
         frame_gen1, frame_gen2, frame_gen3 = itertools.tee(frame_generator, 3)
         loop_frame_generator = frame_gen1
         frame_generator_detector = frame_gen2
         assigner_training_generator = frame_gen3
-
+    
+        # Get detections from frames
         detections_in_frame_generator = self._detect_objects_in_frame(
             frame_generator_detector
         )
-
-        # get sample frames for team assigner training
+    
+        # Train team assigner with sample frames
         sample_frames, sample_player_detections = self.get_sample_frames(
             assigner_training_generator, samples_num=10
         )
         team_assigner.initialize_assigner(sample_frames, sample_player_detections)
-
+    
+        # Process each frame
         for frame_num, detections in enumerate(detections_in_frame_generator):
             current_frame = next(loop_frame_generator)
-
+    
+            # Convert detections to supervision format
             detection_supervision = sv.Detections.from_ultralytics(detections)
-
+    
+            # Separate player and ball detections
             player_dets = detection_supervision[
                 detection_supervision.data["class_name"] != "ball"
             ]
             ball_dets = detection_supervision[
                 detection_supervision.data["class_name"] == "ball"
             ]
-
-            # Update trackers
+    
+            # Update player tracker
             tracked_players = player_tracker.update_with_detections(player_dets)
-            tracked_ball = ball_tracker.update_with_detections(ball_dets)
-            print(ball_dets)
-            print(tracked_ball)
+    
+            # Convert ball detections to Norfair format (single 2D point: center of bbox)
+            norfair_detections = [
+                Detection(
+                    points=np.array([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2]),  # Center: [(x_min + x_max)/2, (y_min + y_max)/2]
+                    scores=np.array([conf])  # Confidence score
+                )
+                for bbox, conf in zip(ball_dets.xyxy, ball_dets.confidence)
+            ]
+    
+            # Update ball tracker with Norfair
+            tracked_balls = ball_tracker.update(detections=norfair_detections)
+            ball_detections = sv.Detections.empty()
+            
+            # Convert tracked ball to sv.Detections
+            if tracked_balls:
+                # Assume one ball; get center point
+                center = tracked_balls[0].estimate[0]  # [x_center, y_center]
+                ball_size = 15  # Assume ball is ~15 pixels wide/tall; adjust as needed
+                xyxy = np.array([[
+                    center[0] - ball_size / 2,  # x_min
+                    center[1] - ball_size / 2,  # y_min
+                    center[0] + ball_size / 2,  # x_max
+                    center[1] + ball_size / 2   # y_max
+                ]])
+                # Create sv.Detections object
+                ball_detections = sv.Detections(
+                    xyxy=xyxy,
+                    confidence=np.array([0.5]),  # Placeholder confidence; adjust as needed
+                    class_id=np.array([0]),      # Ball class ID
+                    tracker_id=np.array([tracked_balls[0].id]),  # Norfair track ID
+                    data={"class_name": np.array(["ball"])}
+                )
+    
+            # Create PlayersDetections object
             current_frame_players_detections = PlayersDetections(
-                tracked_players, ball_dets, frame_num
+                tracked_players, ball_detections, frame_num
             )
-
-            # Assign team to players
+    
+            # Assign teams to players
             teams_arr = team_assigner.get_players_teams(
                 current_frame, current_frame_players_detections
             )
             current_frame_players_detections.team = teams_arr
+    
             yield current_frame_players_detections
 
     def interpolate_ball_positions(self, ball_positions):
