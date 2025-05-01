@@ -13,14 +13,15 @@ class PlayersDetections:
     That's why team is an np.ndarray.
     """
 
-    detections: sv.Detections
+    players_detections: sv.Detections
+    ball_detection: sv.Detections
     frame: int
     team: Optional[np.ndarray] = None
 
     def to_records(self) -> List[Dict]:
         """Convert the detections in this frame to a list of records, each representing one detection."""
         records = []
-        dets = self.detections
+        dets = self.players_detections
         frame = self.frame
         team = self.team if self.team is not None else [None] * len(dets)
 

@@ -1,0 +1,2 @@
+ByteTracker like to remove ball due to low confidence
+cv2 uses BGR and yolo uses RGB

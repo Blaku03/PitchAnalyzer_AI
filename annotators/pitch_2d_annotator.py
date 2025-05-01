@@ -28,7 +28,9 @@ class Pitch2DAnnotator:
         field_2d_img = draw_pitch(SoccerPitchConfiguration())
 
         # Draw referees
-        referee_mask = players_detections.detections.data["class_name"] == "referee"
+        referee_mask = (
+            players_detections.players_detections.data["class_name"] == "referee"
+        )
         referee_color = "#FFFF00"
         field_2d_img = Pitch2DAnnotator.color_pitch_points(
             masked_xy_points=xy_points[referee_mask],
@@ -37,7 +39,7 @@ class Pitch2DAnnotator:
         )
 
         goalkeeper_mask = (
-            players_detections.detections.data["class_name"] == "goalkeeper"
+            players_detections.players_detections.data["class_name"] == "goalkeeper"
         )
         goalkeeper_color = "#00BFFF"
         field_2d_img = Pitch2DAnnotator.color_pitch_points(
@@ -46,7 +48,7 @@ class Pitch2DAnnotator:
             pitch_img=field_2d_img,
         )
 
-        ball_mask = players_detections.detections.data["class_name"] == "ball"
+        ball_mask = players_detections.players_detections.data["class_name"] == "ball"
         ball_color = "#FFA500"
         field_2d_img = Pitch2DAnnotator.color_pitch_points(
             masked_xy_points=xy_points[ball_mask],

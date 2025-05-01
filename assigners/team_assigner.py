@@ -1,5 +1,5 @@
-import pdb
-from typing import List, Tuple
+from typing import List
+import supervision as sv
 import numpy as np
 from sklearn.cluster import KMeans
 
@@ -69,8 +69,8 @@ class TeamAssigner:
     def initialize_assigner(
         self,
         frames: List[np.ndarray],
-        player_detections: List[PlayersDetections],
-        n_clusters: int = 2
+        player_detections: List[sv.Detections],
+        n_clusters: int = 2,
     ):
         """
         Initialize the team assigner with sample frames and player detections.
@@ -81,8 +81,7 @@ class TeamAssigner:
             n_clusters: The number of clusters to use for K-means.
         """
         player_colors = []
-        for frame, pd in zip(frames, player_detections):
-            dets = pd.detections
+        for frame, dets in zip(frames, player_detections):
             class_names = dets.data.get("class_name", [])
             for i, cls in enumerate(class_names):
                 if cls != "player":
@@ -109,11 +108,11 @@ class TeamAssigner:
             np.array: List of team IDs for the players in the current frame.
         """
 
-        n_detections = len(frame_player_detections.detections)
+        n_detections = len(frame_player_detections.players_detections)
         players_teams = np.full(n_detections, None, dtype=object)
 
         for idx in range(n_detections):
-            player_detection = frame_player_detections.detections[idx]
+            player_detection = frame_player_detections.players_detections[idx]
             if player_detection.data["class_name"] != "player":
                 continue
 
