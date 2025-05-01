@@ -2,7 +2,7 @@ from typing import Generator
 import numpy as np
 from utils.pitch_utils import draw_pitch, draw_points_on_pitch
 from mapping_2d.soccer_field import SoccerPitchConfiguration
-from model_dataclasses.player_detection import PlayersDetections
+from model_dataclasses.players_detections import PlayersDetections
 import supervision as sv
 
 

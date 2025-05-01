@@ -1,9 +1,8 @@
 from typing import Generator
 import numpy as np
-from model_dataclasses.player_detection import PlayersDetections
+from model_dataclasses.players_detections import PlayersDetections
 import supervision as sv
 import copy
-import pdb
 
 
 class PlayersAnnotator:
@@ -43,10 +42,11 @@ class PlayersAnnotator:
         )
 
         triangle_annotator = sv.TriangleAnnotator(
-            color=sv.Color.from_hex('#FFD700'),
-            base=20, height=17
+            color=sv.Color.from_hex("#FFD700"), base=20, height=17
         )
-        ball_frame = triangle_annotator.annotate(scene=frame, detections=players_detections_copy.ball_detection)
+        ball_frame = triangle_annotator.annotate(
+            scene=frame, detections=players_detections_copy.ball_detection
+        )
         return ellipse_annotator.annotate(
             scene=ball_frame,
             detections=players_detections_copy.players_detections,

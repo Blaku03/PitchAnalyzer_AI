@@ -5,7 +5,7 @@ import supervision as sv
 import numpy as np
 from mapping_2d.soccer_field import SoccerPitchConfiguration
 from mapping_2d.view_trans import ViewTransformer
-from model_dataclasses.player_detection import PlayersDetections
+from model_dataclasses.players_detections import PlayersDetections
 
 
 class FieldTracker:
