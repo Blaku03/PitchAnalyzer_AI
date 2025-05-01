@@ -6,3 +6,4 @@ supervision
 scikit-learn
 pandas
 kagglehub
+ipywidgets
