@@ -14,6 +14,7 @@ from model_dataclasses.player_detection import PlayersDetections
 class PlayerDetector:
     def __init__(self, model_path: Path):
         self.model = YOLO(model_path)
+        self.conf = 0.1
 
     def _detect_objects_in_frame(
         self, frame_generator: Generator, batch_size=20
@@ -29,7 +30,7 @@ class PlayerDetector:
         """
 
         def process_batch(batch):
-            results = self.model.predict(batch, conf=0.1, stream=True)
+            results = self.model.predict(batch, conf=self.conf, stream=True)
             for result in results:
                 yield result
 
@@ -45,12 +46,10 @@ class PlayerDetector:
             yield from process_batch(batch)
 
     def get_sample_frames(
-        self,
-        frame_generator: Generator,
-        samples_num: int = 10
+        self, frame_generator: Generator, samples_num: int = 10
     ) -> Tuple[List[np.ndarray], List[PlayersDetections]]:
         """
-        Sample N random frames from a video stream 
+        Sample N random frames from a video stream
         (using reservoir sampling [https://en.wikipedia.org/wiki/Reservoir_sampling]),
         then detect & track those frames.
 
@@ -63,27 +62,24 @@ class PlayerDetector:
             sampled_players_detections: List of PlayersDetections for those frames.
         """
         # Reservoir‐sample raw frames
-        reservoir: List[Tuple[np.ndarray,int]] = []
+        reservoir: List[Tuple[np.ndarray, int]] = []
         for i, frame in enumerate(frame_generator, start=1):
             if len(reservoir) < samples_num:
                 reservoir.append((frame, i))
             else:
                 j = random.randint(1, i)
                 if j <= samples_num:
-                    reservoir[j-1] = (frame, i)
+                    reservoir[j - 1] = (frame, i)
 
         sampled_frames, frame_indices = zip(*reservoir)
 
         # Run detection+tracking on those sampled frames
         det_gen = self._detect_objects_in_frame(iter(sampled_frames))
-        tracker = sv.ByteTrack()
 
         sampled_players_detections: List[PlayersDetections] = []
         for frame, raw_dets, idx in zip(sampled_frames, det_gen, frame_indices):
-            sup             = sv.Detections.from_ultralytics(raw_dets)
-            det_with_tracks = tracker.update_with_detections(sup)
-            pd              = PlayersDetections(det_with_tracks, frame=idx)
-            sampled_players_detections.append(pd)
+            sup = sv.Detections.from_ultralytics(raw_dets)
+            sampled_players_detections.append(sup)
 
         return list(sampled_frames), list(sampled_players_detections)
 
@@ -98,7 +94,15 @@ class PlayerDetector:
         Returns:
             generator: A generator yielding DataFrames with detection results.
         """
-        tracker = sv.ByteTrack()
+        player_tracker = sv.ByteTrack(
+            lost_track_buffer=60, minimum_matching_threshold=0.4
+        )
+        ball_tracker = sv.ByteTrack(
+                track_thresh=0.05,    # Very low to catch weak ball detections
+                match_thresh=0.25,    # Loose IoU matching for ball
+                track_buffer=100,     # Long buffer to maintain ball tracks
+                frame_rate=30         # Adjust based on your video's frame rate
+            )
         team_assigner = TeamAssigner()
 
         # Duplicate the generator
@@ -115,19 +119,27 @@ class PlayerDetector:
         sample_frames, sample_player_detections = self.get_sample_frames(
             assigner_training_generator, samples_num=10
         )
-        team_assigner.initialize_assigner(
-            sample_frames, sample_player_detections
-        )
+        team_assigner.initialize_assigner(sample_frames, sample_player_detections)
 
         for frame_num, detections in enumerate(detections_in_frame_generator):
             current_frame = next(loop_frame_generator)
 
             detection_supervision = sv.Detections.from_ultralytics(detections)
-            detection_with_tracks = tracker.update_with_detections(
-                detection_supervision
-            )
+
+            player_dets = detection_supervision[
+                detection_supervision.data["class_name"] != "ball"
+            ]
+            ball_dets = detection_supervision[
+                detection_supervision.data["class_name"] == "ball"
+            ]
+
+            # Update trackers
+            tracked_players = player_tracker.update_with_detections(player_dets)
+            tracked_ball = ball_tracker.update_with_detections(ball_dets)
+            print(ball_dets)
+            print(tracked_ball)
             current_frame_players_detections = PlayersDetections(
-                detection_with_tracks, frame_num
+                tracked_players, ball_dets, frame_num
             )
 
             # Assign team to players

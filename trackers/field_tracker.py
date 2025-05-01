@@ -73,7 +73,9 @@ class FieldTracker:
         Stops when either `frames` or `points` is exhausted.
         """
         for frame, players_tracks in zip(frame_generator, players_tracks_generator):
-            bottom_players_boxes = players_tracks.detections.get_anchors_coordinates(
-                sv.Position.BOTTOM_CENTER
+            bottom_players_boxes = (
+                players_tracks.players_detections.get_anchors_coordinates(
+                    sv.Position.BOTTOM_CENTER
+                )
             )
             yield self.map_points_2d(frame, bottom_players_boxes)

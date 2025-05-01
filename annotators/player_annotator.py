@@ -25,7 +25,7 @@ class PlayersAnnotator:
         if team is None:
             raise ValueError("Team array is None, cannot filter by team")
         mask = team == 2
-        players_detections_copy.detections.class_id[mask] = 4
+        players_detections_copy.players_detections.class_id[mask] = 4
         ellipse_annotator = sv.EllipseAnnotator(
             color=sv.ColorPalette.from_hex(
                 [
@@ -42,7 +42,7 @@ class PlayersAnnotator:
         )
         return ellipse_annotator.annotate(
             scene=frame,
-            detections=players_detections_copy.detections,
+            detections=players_detections_copy.players_detections,
         )
 
     @classmethod
