@@ -1,6 +1,6 @@
 from typing import Generator
 import numpy as np
-from model_dataclasses.player_detection import PlayersDetections
+from model_dataclasses.players_detections import PlayersDetections
 import supervision as sv
 import copy
 
@@ -25,7 +25,7 @@ class PlayersAnnotator:
         if team is None:
             raise ValueError("Team array is None, cannot filter by team")
         mask = team == 2
-        players_detections_copy.detections.class_id[mask] = 4
+        players_detections_copy.players_detections.class_id[mask] = 4
         ellipse_annotator = sv.EllipseAnnotator(
             color=sv.ColorPalette.from_hex(
                 [
@@ -40,9 +40,16 @@ class PlayersAnnotator:
                 ]
             )
         )
+
+        triangle_annotator = sv.TriangleAnnotator(
+            color=sv.Color.from_hex("#FFD700"), base=20, height=17
+        )
+        ball_frame = triangle_annotator.annotate(
+            scene=frame, detections=players_detections_copy.ball_detection
+        )
         return ellipse_annotator.annotate(
-            scene=frame,
-            detections=players_detections_copy.detections,
+            scene=ball_frame,
+            detections=players_detections_copy.players_detections,
         )
 
     @classmethod

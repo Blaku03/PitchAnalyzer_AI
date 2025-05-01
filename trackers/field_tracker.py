@@ -1,9 +1,11 @@
 from pathlib import Path
+from typing import Generator
 from ultralytics import YOLO
 import supervision as sv
 import numpy as np
 from mapping_2d.soccer_field import SoccerPitchConfiguration
 from mapping_2d.view_trans import ViewTransformer
+from model_dataclasses.players_detections import PlayersDetections
 
 
 class FieldTracker:
@@ -60,3 +62,20 @@ class FieldTracker:
         transformed_keypoints = v_transformer.transform_points(points=points)
 
         return sv.KeyPoints(xy=transformed_keypoints[np.newaxis, ...])
+
+    def map_players_tracks_2d_generator(
+        self,
+        frame_generator: Generator,
+        players_tracks_generator: Generator[PlayersDetections, None, None],
+    ) -> Generator[sv.KeyPoints, None, None]:
+        """
+        Lazily map each (frame, points) pair to KeyPoints.
+        Stops when either `frames` or `points` is exhausted.
+        """
+        for frame, players_tracks in zip(frame_generator, players_tracks_generator):
+            bottom_players_boxes = (
+                players_tracks.players_detections.get_anchors_coordinates(
+                    sv.Position.BOTTOM_CENTER
+                )
+            )
+            yield self.map_points_2d(frame, bottom_players_boxes)

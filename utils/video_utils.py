@@ -33,7 +33,7 @@ def save_video(frame_generator: Generator, output_path: Path, fps: int = 30) -> 
     Save video frames to a file.
 
     Args:
-        frame_generator (generator): A generator yielding video frames.
+        frame_generator (generator): A generator yielding video frames in RGB format.
         output_path (Path): Path to save the output video.
         fps (int): Frames per second for the output video.
 
@@ -47,8 +47,11 @@ def save_video(frame_generator: Generator, output_path: Path, fps: int = 30) -> 
         if writer is None:
             height, width = frame.shape[:2]
             fourcc = cv2.VideoWriter_fourcc(*"XVID")
-            writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-        writer.write(frame)
+            writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
+
+        # Convert frame from RGB to BGR for OpenCV
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        writer.write(frame_bgr)
         frame_count += 1
 
     if writer is not None:
