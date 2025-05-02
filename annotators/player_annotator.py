@@ -3,6 +3,7 @@ import numpy as np
 from model_dataclasses.players_detections import PlayersDetections
 import supervision as sv
 import copy
+import pdb
 
 
 class PlayersAnnotator:
@@ -20,13 +21,16 @@ class PlayersAnnotator:
         Returns:
             np.ndarray: The annotated frame.
         """
+
+        # Assign a new class id to the other team
         players_detections_copy = copy.deepcopy(players_detections)
         team = players_detections_copy.team
         if team is None:
             raise ValueError("Team array is None, cannot filter by team")
         mask = team == 2
         players_detections_copy.players_detections.class_id[mask] = 4
-        ellipse_annotator = sv.EllipseAnnotator(
+
+        players_annotator = sv.EllipseAnnotator(
             color=sv.ColorPalette.from_hex(
                 [
                     "#FF0000",
@@ -40,17 +44,27 @@ class PlayersAnnotator:
                 ]
             )
         )
-
-        triangle_annotator = sv.TriangleAnnotator(
+        ball_annotator = sv.TriangleAnnotator(
             color=sv.Color.from_hex("#FFD700"), base=20, height=17
         )
-        ball_frame = triangle_annotator.annotate(
-            scene=frame, detections=players_detections_copy.ball_detection
+        closest_player_annotator = sv.TriangleAnnotator(
+            color=sv.Color.from_hex("#7CB342"), base=20, height=12
         )
-        return ellipse_annotator.annotate(
-            scene=ball_frame,
+
+        frame = players_annotator.annotate(
+            scene=frame,
             detections=players_detections_copy.players_detections,
         )
+        frame = ball_annotator.annotate(
+            scene=frame, detections=players_detections_copy.ball_detection
+        )
+
+        if players_detections_copy.player_ball_id != -1:
+            frame = closest_player_annotator.annotate(
+                scene=frame, 
+                detections=players_detections_copy.players_detections[players_detections_copy.player_ball_id])
+
+        return frame
 
     @classmethod
     def annotate_video(

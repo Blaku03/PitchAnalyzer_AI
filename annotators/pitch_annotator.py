@@ -1,11 +1,10 @@
 from typing import Generator
 import numpy as np
 import supervision as sv
-from mapping_2d.view_trans import ViewTransformer
 from mapping_2d.soccer_field import SoccerPitchConfiguration
 
 
-class FieldAnnotator:
+class PitchAnnotator:
     @staticmethod
     def annotate_frame_keypoints(
         frame: np.ndarray, field_keypoints: sv.KeyPoints

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import pdb
 from typing import Optional, List, Dict
 import numpy as np
 import pandas as pd
@@ -16,6 +15,7 @@ class PlayersDetections:
     players_detections: sv.Detections
     ball_detection: sv.Detections
     frame: int
+    player_ball_id: int = -1
     team: Optional[np.ndarray] = None
 
     def to_records(self) -> List[Dict]:

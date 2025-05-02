@@ -6,6 +6,7 @@ import numpy as np
 from ultralytics import YOLO
 import supervision as sv
 from norfair import Tracker, Detection
+from assigners.player_ball_assigner import PlayerBallAssigner
 from assigners.team_assigner import TeamAssigner
 from model_dataclasses.players_detections import PlayersDetections
 
@@ -17,6 +18,7 @@ class GameTracker:
         self.player_tracker = None
         self.ball_tracker = None
         self.team_assigner = TeamAssigner()
+        self.player_ball_assigner = PlayerBallAssigner()
 
     def _initialize_trackers(self):
         """Initialize player and ball trackers with appropriate configurations"""
@@ -160,6 +162,9 @@ class GameTracker:
                 players_detections=players,
                 ball_detection=ball,
                 frame=frame_num,
+                player_ball_id=self.player_ball_assigner.assign_player_to_ball(
+                    players_detections=players, ball_detection=ball
+                ),
                 team=self.team_assigner.get_players_teams(frame, players),
             )
 
