@@ -5,7 +5,7 @@ import numpy as np
 
 class PlayerBallAssigner:
     def __init__(self):
-        self.max_player_ball_distance = 70
+        self.max_player_ball_distance = 100
 
     def get_distances_to_ball(
         self, ball_detection: sv.Detections, players_detections: sv.Detections

@@ -5,15 +5,15 @@ import supervision as sv
 import numpy as np
 from mapping_2d.soccer_field import SoccerPitchConfiguration
 from mapping_2d.view_trans import ViewTransformer
-from model_dataclasses.players_detections import PlayersDetections
+from model_dataclasses.match_detections import MatchDetectionsData
 
 
-class FieldTracker:
+class PitchTracker:
     def __init__(self, model_path: Path, filter_threshold: float = 0.5):
         self.model = YOLO(model_path)
         self.filter_threshold = filter_threshold
 
-    def get_field_keypoints(self, frame: np.ndarray) -> tuple[sv.KeyPoints, np.array]:
+    def get_pitch_keypoints(self, frame: np.ndarray) -> tuple[sv.KeyPoints, np.array]:
         """
         Detect field keypoints in a video stream and return results as a generator.
         Args:
@@ -36,9 +36,9 @@ class FieldTracker:
 
         return filtered_keypoints, confident_mask
 
-    def get_field_edges(self, frame: np.ndarray) -> sv.KeyPoints:
+    def get_pitch_edges(self, frame: np.ndarray) -> sv.KeyPoints:
         raw_soccer_verticies = np.array(SoccerPitchConfiguration().vertices)
-        field_keypoint, confident_mask = self.get_field_keypoints(frame)
+        field_keypoint, confident_mask = self.get_pitch_keypoints(frame)
         filtered_soccer_verticies = raw_soccer_verticies[confident_mask]
 
         v_transformer = ViewTransformer(
@@ -53,7 +53,7 @@ class FieldTracker:
     def map_points_2d(self, frame: np.ndarray, points: np.array) -> sv.KeyPoints:
         raw_soccer_verticies = np.array(SoccerPitchConfiguration().vertices)
 
-        field_keypoint, confident_mask = self.get_field_keypoints(frame)
+        field_keypoint, confident_mask = self.get_pitch_keypoints(frame)
         filtered_soccer_verticies = raw_soccer_verticies[confident_mask]
 
         v_transformer = ViewTransformer(
@@ -66,15 +66,15 @@ class FieldTracker:
     def map_players_tracks_2d_generator(
         self,
         frame_generator: Generator,
-        players_tracks_generator: Generator[PlayersDetections, None, None],
+        match_detections_generator: Generator[MatchDetectionsData, None, None],
     ) -> Generator[sv.KeyPoints, None, None]:
         """
         Lazily map each (frame, points) pair to KeyPoints.
         Stops when either `frames` or `points` is exhausted.
         """
-        for frame, players_tracks in zip(frame_generator, players_tracks_generator):
+        for frame, match_detections in zip(frame_generator, match_detections_generator):
             bottom_players_boxes = (
-                players_tracks.players_detections.get_anchors_coordinates(
+                match_detections.players_detections.get_anchors_coordinates(
                     sv.Position.BOTTOM_CENTER
                 )
             )

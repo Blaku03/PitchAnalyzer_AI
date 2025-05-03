@@ -3,7 +3,7 @@ import supervision as sv
 import numpy as np
 from sklearn.cluster import KMeans
 
-from model_dataclasses.players_detections import PlayersDetections
+from model_dataclasses.match_detections import MatchDetectionsData
 
 
 class TeamAssigner:
