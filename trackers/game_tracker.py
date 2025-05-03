@@ -6,8 +6,9 @@ import numpy as np
 from ultralytics import YOLO
 import supervision as sv
 from norfair import Tracker, Detection
+from assigners.player_ball_assigner import PlayerBallAssigner
 from assigners.team_assigner import TeamAssigner
-from model_dataclasses.players_detections import PlayersDetections
+from model_dataclasses.match_detections import MatchDetectionsData
 
 
 class GameTracker:
@@ -17,6 +18,7 @@ class GameTracker:
         self.player_tracker = None
         self.ball_tracker = None
         self.team_assigner = TeamAssigner()
+        self.player_ball_assigner = PlayerBallAssigner()
 
     def _initialize_trackers(self):
         """Initialize player and ball trackers with appropriate configurations"""
@@ -31,7 +33,7 @@ class GameTracker:
             return np.linalg.norm(detection.points - track.estimate)
 
         self.ball_tracker = Tracker(
-            distance_function=distance_function,
+            distance_function="euclidean",
             distance_threshold=50,
             initialization_delay=0,
             hit_counter_max=100,
@@ -71,7 +73,7 @@ class GameTracker:
 
     def get_sample_frames(
         self, frame_generator: Generator, samples_num: int = 10
-    ) -> Tuple[List[np.ndarray], List[PlayersDetections]]:
+    ) -> Tuple[List[np.ndarray], List[MatchDetectionsData]]:
         """Sample frames and return detections"""
         sampled_frames, frame_indices = self._reservoir_sample(
             frame_generator, samples_num
@@ -133,9 +135,9 @@ class GameTracker:
 
         return tracked_players, tracked_ball
 
-    def get_detections_from_frames(
+    def get_detections_generator(
         self, frame_generator: Generator
-    ) -> Generator[PlayersDetections, None, None]:
+    ) -> Generator[MatchDetectionsData, None, None]:
         """Main processing pipeline for video frames"""
         self._initialize_trackers()
 
@@ -156,11 +158,14 @@ class GameTracker:
             detections = sv.Detections.from_ultralytics(result)
             players, ball = self._process_frame_detections(detections)
 
-            player_detection = PlayersDetections(
+            match_detections = MatchDetectionsData(
                 players_detections=players,
                 ball_detection=ball,
                 frame=frame_num,
+                player_ball_id=self.player_ball_assigner.assign_player_to_ball(
+                    players_detections=players, ball_detection=ball
+                ),
                 team=self.team_assigner.get_players_teams(frame, players),
             )
 
-            yield player_detection
+            yield match_detections
