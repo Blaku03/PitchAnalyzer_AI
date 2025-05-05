@@ -1,63 +1,39 @@
-- Project structure
+## 🧭 Overview
 
-- Challenges
-    - Camera angles
-    - Wheather
-    - Different shirt colors
-    - Ball can be hidden from the camera (player is in front of it)
-    - Ball is small and fast moving
-- Dataset
-    - source (kaggle competition)
-    - format (30 sec clips)
-    - Label studio
-        - auto annotawanie itp
-    - Augemntation (pokazac raw zdjecie i skad pomysl na nasze aug)
-- Getting game data
-    - YOLO for detecting players
-    - KNN for splitting into teams
-        - (initialization of KNN) 
-    - Trackers used
-        - Byte tracker
-        - Norfair
-    - Statictsic
-- Pitch data
-    - Detecting pitch keypoints
-    - Homography mapping
-- Training
-    - Yolo paraters
-        - Performance
-        - Aug parameters
-    - Online training kaggle
-- Tips for creating similar project
-    - Model can be overfitted
-- Improving current project
-    - Seprate model for players and ball
+This project, PitchAnalyzer_AI, is a sports analytics tool designed to analyze football matches using computer vision and machine learning. It detects players, the ball, and key pitch features, tracks movements, and generates game statistics. The system employs YOLO for object detection, KNN for team assignment, and trackers like ByteTracker and Norfair for robust tracking. It also uses homography mapping to create a bird's-eye view of the pitch for better spatial analysis.
 
-## Table of Contents
+To learn how to run the project, refer to the [README.md](README.md). It provides details on the project workflow and setup along with the demo.
 
--  [Challenges](#challenges)
+
+## 📚 Table of Contents
+
+-  [🧗Challenges](#challenges)
+    -  [📹 Non-Deterministic Camera Angles](#non-deterministic-camera-angles)
+    -  [🌤️ Lightning variety in videos](#lightning)
+    -  [🖥️ Lack of Computational Power](#computational-power)
 -  [📁Project Structure](#project-structure)
 -  [⚽Dataset](#dataset)
-    - [Source](#source)
-    - [Format](#format)
-    - [Label Studio](#label-studio)
-    - [Augmentation](#augmentation)
-- [Getting Game Data](#getting-game-data)
-    - [Detecting players with YOLO](#detecting-players-with-yolo)
-    - [KNN for Splitting into Teams](#knn-for-splitting-into-teams)
-    - [Trackers Used](#trackers-used)
-- [Pitch Data](#pitch-data)
-    - [Detecting Pitch Keypoints](#detecting-pitch-keypoints)
-    - [Homography Mapping](#homography-mapping)
-- [Training](#training)
-    - [Augmentation Parameters](#augmentation-parameters)
-    - [Online Training on Kaggle](#online-training-on-kaggle)
-- [Observations](#observations)
+    - [📦Source](#source)
+    - [🎞Format](#format)
+    - [🏷Labeling with Label Studio](#label-studio)
+    - [🧬Augmentation](#augmentation)
+-  [📊Getting Game Data](#getting-game-data)
+    - [👁Detecting players with YOLO](#detecting-players-with-yolo)
+    - [👥KNN for Splitting into Teams](#knn-for-splitting-into-teams)
+    - [🛰Trackers](#trackers)
+    - [Statistics](#statictics)
+- [🏟️ Getting Pitch Data](#pitch-data)
+    - [📍Detecting Pitch Keypoints](#pitch-keypoints)
+    - [🗺Homography Mapping](#homography-mapping)
+- [🏋Training](#training)
+    - [📋Yolo parameters](#yolo-parameters)
+    - [☁Online Training on Kaggle](#online-training)
+- [📝Observations](#observations)
 
 
-## Challenges
+## <a name="challenges"></a> 🧗Challenges
 
-### 📹 Non-Deterministic Camera Angles
+### <a name="non-deterministic-camera-angles"></a> 📹 Non-Deterministic Camera Angles
 
 One of the primary challenges in analyzing football pitch videos is the variability in camera angles. 
 
@@ -75,10 +51,10 @@ This issue introduces several complications:
 4. **Occlusions**:  
    Players or referees may obstruct the view of the ball or other players, further complicating object detection and tracking.
 
-**Solutions**:
+**Solution**:
 To address the challenges of non-deterministic camera angles, a bird's eye view model of the pitch is created using homography mapping, ensuring consistent spatial representation. Ball interpolation techniques and dynamic player identification are employed to maintain tracking continuity and gather statistics without relying on unique player IDs.
 
-### 🌤️ Lightning variety in videos 
+### <a name="lightning"></a> 🌤️ Lightning variety in videos 
 ---
 
 One of the significant challenges in analyzing football pitch videos is the variability in lighting conditions. These variations can arise due to different weather conditions, stadium lighting setups, or the time of day when the match is played. 
@@ -99,12 +75,12 @@ Key issues include:
 3. **Artificial Lighting in Stadiums**:  
    Stadium lighting can vary significantly, with some setups causing glare or uneven illumination across the pitch. This can lead to challenges in maintaining consistent detection and tracking performance.
 
-**Solutions**:
+**Solution**:
 To address lighting variability, a wide augmentation strategy was implemented, including adjustments for brightness simulate diverse conditions. This ensures the model is robust to weather changes, stadium lighting differences, and other inconsistencies in video footage.
 
 If You want to know more about our solution go here: [Augmentation](#augmentation)
 
-### 🖥️ Lack of Computational Power 
+### <a name="computational-power"></a> 🖥️ Lack of Computational Power 
 ---
 
 One of the major challenges faced during the development of our system was the lack of access to high-performance GPUs for training our models. 
@@ -113,8 +89,6 @@ To overcome this limitation, we utilized Kaggle's online platform, which provide
 
 
 ## <a name="project-structure"></a>📁 Project Structure
-
-The PitchAnalyzer AI project is structured to modularize its functionalities, making it easier to develop, maintain, and extend the system for tracking football game statistics. By analyzing video footage, the system tracks players, the ball, and other game elements to generate detailed insights. Below is an overview of the main directories and their specific purposes:
 
 ```
 📦 PitchAnalyzer_AI
@@ -138,20 +112,22 @@ The PitchAnalyzer AI project is structured to modularize its functionalities, ma
 ┃   ╰─ Offers utility scripts for common tasks, such as importing video files, loading pre-trained models, and preprocessing data, enhancing development and deployment efficiency.
 ```
 
-##  Dataset ⚽
+## <a name="dataset"></a> ⚽ Dataset 
 
-### 📦 Source
+### <a name="source"></a> 📦 Source
+
 Our dataset originates from a Kaggle competition that inspired this project. While the original data was removed, we found a mirror copy:
 - [Copy of the dataset](https://www.kaggle.com/datasets/saberghaderi/-dfl-bundesliga-460-mp4-videos-in-30sec-csv)
 - [Original competition](https://www.kaggle.com/competitions/dfl-bundesliga-data-shootout)
 
-### 🎞️ Format
+### <a name="format"></a> 🎞️ Format
+
 Each clip captures real-time player movement and game flow. For training, we extracted 5 random frames per clip, giving us a wide variety of:
 - Player positions
 - Ball locations
 - Game events
 
-### 🏷️ Labeling with Label Studio
+### <a name="label-studio"></a> 🏷️ Labeling with Label Studio
 We used Label Studio for annotation thanks to its auto-labeling feature. After training an initial model, we used it to auto-label frames, then manually corrected mistakes.
 This saved tons of time — each frame has ~20 players + the ball, so full manual labeling would've been very time-consuming.
 
@@ -160,9 +136,8 @@ This saved tons of time — each frame has ~20 players + the ball, so full manua
 **Important note:** There are rendering issues with Label Studio when using chromium browsers like Brave. For our experience, Firefox worked best. If you encounter issues, try switching to Firefox.
 
 
-### 🧬 Augmentation
+### <a name="augmentation"></a> 🧬 Augmentation
 ---
-
 
 **Our Augmentation**  
 
@@ -200,7 +175,7 @@ You can find the implementation details in the following file: [here](augmentati
 
  YOLO provides built-in options to apply various augmentations during training, allowing the model to generalize better to diverse scenarios. These augmentations include adjustments for saturation, brightness, translation, scaling, and more. The parameters for these augmentations are configurable and can be found in the training notebook. By default, many of these augmentations are turned off, but they can be enabled and fine-tuned as needed to suit specific training requirements.
 
- This is augmentations we used:
+ This is augmentations we used (for specific values go [here](#training)):
 
 **🌈 Saturation Adjustment**  
 
@@ -252,9 +227,9 @@ Applies a fixed policy of complex transforms (e.g. shearing, posterizing, solari
 - **Use case:** Infuses additional color, geometric, and texture variations without manual tuning.
 
 
-## Getting Game Data
+## <a name="getting-game-data"></a> 📊 Getting Game Data
 
-### Detecting Players with YOLO
+### <a name="detecting-players-with-yolo"></a> 👁️ Detecting Players with YOLO
 
 For detecting players, we decided to use the YOLO model which is a state-of-the-art object detection algorithm. 
 YOLO (You Only Look Once) is known for its speed and accuracy in real-time object detection tasks.
@@ -262,15 +237,15 @@ We have chosen the newest YOLOv11x model, where X stands for the size of the mod
 
 It is summarized in the table below:
 
-| Model | Size | Use Case |
-|-------|------|----------|
-YOLOv11n | Nano | Edge/IoT, mobile, real-time with constraints
-YOLOv11s | Small |  General real-time, resource-limited devices |
-YOLOv11m | Medium | Balanced: good accuracy, efficient compute |
-YOLOv11l | Large |  High-accuracy on powerful hardware |
-YOLOv11x | Extra Large | Maximum accuracy, cloud, research, servers |
+| Model    | Size | Use Case |
+|----------|------|----------|
+| YOLOv11n | Nano | Edge/IoT, mobile, real-time with constraints |
+| YOLOv11s | Small |  General real-time, resource-limited devices |
+| YOLOv11m | Medium | Balanced: good accuracy, efficient compute |
+| YOLOv11l | Large |  High-accuracy on powerful hardware |
+| YOLOv11x | Extra Large | Maximum accuracy, cloud, research, servers |
 
-Raw models produces following results:
+Raw model produces following results:
 
 ![YOLOv11x results](documentation_resources/raw_yolo.png)
 
@@ -285,7 +260,7 @@ With annotation result is following:
 
 ![YOLOv11x trained results](documentation_resources/trained_yolo.png)
 
-### KNN for splitting into teams
+### <a name="knn-for-splitting-into-teams"></a> 👥 KNN for splitting into teams
 
 **Initializing**
 
@@ -305,18 +280,57 @@ Example of extracting color of the shirt:
 
 ![Shirt's color image](documentation_resources/after_knn.png)
 
-### 🎯 Trackers used
+### <a name="trackers"></a> 🛰️ Trackers
 
 We used two trackers to track players and the ball.
-The first one is a ByteTracker which is a state-of-the-art object tracking algorithm that uses a combination of Kalman filtering and Hungarian algorithm for data association. 
-It is known for its high accuracy and robustness in tracking multiple objects in real-time.
-We have notice that ByteTracker often deletes predictions when the confidence is low and the tracks are missing for a while.
-That's why we decided to use Norfair tracker which is a lightweight and easy-to-use object tracking library.
-It predicts the next position of the object based on its previous position and velocity, and it can handle occlusions and missed detections more gracefully than other trackers.
 
-## 🎯 Training
+1. **ByteTracker**: A state-of-the-art object tracking algorithm that uses a combination of Kalman filtering and the Hungarian algorithm for data association. It is known for its high accuracy and robustness in tracking multiple objects in real-time.
 
-### 📋 YOLO parameters
+2. **Norfair**: ByteTracker is a powerful tracker, but it can be sensitive to low-confidence detections and may delete tracks if the object is not detected for a while. That's why we decided to use Norfair tracker which is a lightweight and easy-to-use object tracking library. It predicts the next position of the object based on its previous position and velocity, and it can handle occlusions and missed detections more gracefully than other trackers.
+
+### <a name="statistics"></a> 📈 Statictics
+We currently calculate the possession of ball for each team.
+It is calculated by counting the number of frames in which each team has the ball.
+
+There is a marker that shows the player closest to the ball.
+There is also a threshold which is used to determine if the player is close enough to the ball to be considered as possessing it.
+
+![Statistics example](documentation_resources/ball_possession.png)
+
+## <a name="pitch-data"></a> 🏟️ Getting Pitch Data
+
+### <a name="pitch-keypoints"></a> 📍 Detecting Pitch Keypoints
+
+To accurately map the football pitch, we need to identify key points on the field.
+We used a YOLO model to detect these key points, which include the corners of the pitch, the center circle, and other significant markers.
+By training the model on annotated images of the pitch, we can achieve high accuracy in detecting these key points.
+
+![Pitch keypoints](documentation_resources/pitch_keypoints.png)
+
+These key points serve as reference markers for homography mapping, allowing us to create a consistent 2D representation of the pitch.
+
+![Pitch 2d mapping](documentation_resources/pitch_keypoints2d.png)
+
+### <a name="homography-mapping"></a> 🗺️ Homography Mapping
+
+Homography mapping is a technique used to transform the perspective of an image to a top-down view. This is particularly useful in sports analytics, where we want to analyze player movements and ball trajectories from a bird's-eye perspective.
+The process involves the following steps:
+1. **Key Point Detection**: Use the YOLO model to detect key points on the pitch.
+2. **Homography Matrix Calculation**: Calculate the homography matrix using the detected key points and their corresponding locations in a top-down view of the pitch.
+3. **Image Transformation**: Apply the homography matrix to transform the 
+orignal points in the image to their corresponding locations in the top-down view.
+4. **Visualization**: Overlay the transformed image with player and ball positions to create a comprehensive view of the game.
+
+Example of the original image and the transformed image:
+
+<p align="center">
+  <img src="documentation_resources/trained_yolo.png" alt="Original Image" width="45%">
+  <img src="documentation_resources/players_2d.png" alt="Transformed Image" width="45%">
+</p>
+
+## <a name="training"></a> 🏋️ Training
+
+### <a name="yolo-parameters"></a> 📋 YOLO parameters
 
 **Performance**
 
@@ -327,9 +341,7 @@ We managed to find a best approach to maximize both the `image_size` and `batch_
 
 By setting `image_size = 1280` and `batch_size = 6`, we achieved a configuration that optimizes both detection performance and training efficiency.
 
-
-
-**Aug parameters**
+**Augmentation parameters**
 
 Our current configuration for the augmentation parameters is:
 
@@ -345,3 +357,40 @@ auto_augment='autoaugment'
 
 Other augmentations are turned of by default.
 If you want to know more about these augmentations check this [augmentation](#augmentation) section.
+
+### <a name="online-training"></a> ☁️ Online Training with Kaggle
+
+Kaggle provides an excellent platform for training machine learning models, offering free access to GPUs and TPUs. This is particularly useful for resource-intensive tasks like training YOLO models. By leveraging Kaggle's computational resources, we can train our models efficiently without the need for expensive hardware.
+
+**Steps to Train on Kaggle:**
+1. Upload your dataset to a Kaggle Dataset or use an existing public dataset.
+2. Create a Kaggle Notebook and configure it to use a GPU by selecting **Settings > Accelerator > GPU**.
+Or use our [notebook](https://www.kaggle.com/code/blaku03/gamemodeltraining).
+3. Install the required dependencies (e.g., PyTorch, YOLO libraries).
+4. Upload your training script or write it directly in the notebook.
+5. Start the training process and monitor the progress using Kaggle's built-in tools.
+
+**Advantages of Kaggle:**
+- Free access to GPUs (e.g., NVIDIA Tesla P100 or T4).
+- Easy integration with datasets hosted on Kaggle.
+- Collaborative environment for sharing and improving code.
+
+For more details, visit the Kaggle Notebooks platform: [Kaggle Notebooks](https://www.kaggle.com/code)
+
+By utilizing Kaggle's resources, we can overcome hardware limitations and focus on optimizing our model's performance.
+
+## <a name="observations"></a> 📝 Observations
+
+One of the potential issues encountered during training is model overfitting. Overfitting occurs when the model performs exceptionally well on the training data but fails to generalize to unseen data. This can happen due to excessive training on a limited dataset or insufficient data augmentation.
+
+**Indicators of Overfitting:**
+- High accuracy on the training set but significantly lower accuracy on the validation set.
+- Poor performance when tested on new or unseen data.
+
+**Mitigation Strategies:**
+1. **Data Augmentation:** Apply diverse augmentations (e.g., brightness, translation, scaling) to increase the variability in the training data and improve the model's robustness.
+2. **Regularization Techniques:** Use methods like dropout or weight decay to prevent the model from relying too heavily on specific features.
+3. **Early Stopping:** Monitor validation loss during training and stop the process when the loss stops improving.
+4. **Increase Dataset Size:** Incorporate more diverse data to help the model learn a broader range of scenarios.
+
+By addressing overfitting, we can ensure that the model performs consistently across both training and real-world data.
