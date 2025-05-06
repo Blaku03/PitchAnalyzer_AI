@@ -16,4 +16,4 @@ class ModelImporter:
 
     def download_player_model(self, model_name: str = "player_detectionv1_1") -> str:
         print("Downloading player detection model...")
-        return self.download_kaggle_model(model_name) + "/v1_2.pt"
+        return self.download_kaggle_model(model_name) + "/v1_3.pt"
