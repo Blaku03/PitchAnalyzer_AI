@@ -35,8 +35,8 @@ class StatisticsTracker:
         # Get team of player with the ball
         player_team = match_detections.team[match_detections.player_ball_id]
 
-        if player_team is None:
-            raise ValueError("Team ID is None for player with ball")
+        # if player_team is None:
+        #     raise ValueError("Team ID is None for player with ball")
         if player_team == 1:
             self.team1_ball_possession += 1
 
