@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Generator
 import numpy as np
 
+
 def read_video(video_path: Path) -> Generator:
     """
     Read a video file and yield its frames one by one.
@@ -46,7 +47,7 @@ def save_video(frame_generator: Generator, output_path: Path, fps: int = 30) -> 
     for frame in frame_generator:
         if writer is None:
             height, width = frame.shape[:2]
-            fourcc = cv2.VideoWriter_fourcc(*"XVID")
+            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
 
         # Convert frame from RGB to BGR for OpenCV
@@ -58,6 +59,7 @@ def save_video(frame_generator: Generator, output_path: Path, fps: int = 30) -> 
         writer.release()
 
     return frame_count
+
 
 def add_text_to_image(
     image_rgb: np.ndarray,
