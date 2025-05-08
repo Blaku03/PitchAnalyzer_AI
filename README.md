@@ -9,9 +9,9 @@ By [Blaku03](https://github.com/Blaku03) and [gruzewson](https://github.com/gruz
 - **Assigns** each player to their team.  
 - **Tracks** players and ball trajectories over time.  
 - **Maps** camera views to a bird’s‑eye perspective.  
-- **Aggregates** events into game statistics (possession, heatmaps, distance covered, etc.) for post‑match review.
+- **Aggregates** events into game statistics.
 
-For a detailed breakdown of modules, data formats, augmentation strategies, training recipes, and usage examples, see our full [Documentation](technical_documentation.md).  
+If you are insterested how we created this project, what challenges we faced, and how we solved them, check out our [Technical Documentation](technical_documentation.md).
 
 ## Table of Contents
 
@@ -22,24 +22,26 @@ For a detailed breakdown of modules, data formats, augmentation strategies, trai
 
 ## <a name="demo"></a> 🎦 Demo
 
-Here’s a quick demo of PitchAnalyzer_AI in action: first the raw video input, then the analyzed output with detections, tracking and statistics.
+Here’s a quick demo of PitchAnalyzer_AI in action:
 
-![Raw Video Input](documentation_resources/demo_before.gif)
-
-![Analyzed Output](documentation_resources/demo_after.gif)
-
+![Demo of PitchAnalyzer_AI](documentation_resources/Demo_Pitch.gif)
 
 ## <a name="try-it-out"></a> 👀 Try it out!
 
 Explore the project in action with interactive Jupyter Notebooks!
 
-You'll find them in the development_and_analysis directory — ready to run locally or directly on Kaggle.
+The notebooks are designed to run online on Kaggle or Google Colab as well locally on your machine.
 
-### 📌 Featured Notebooks on Kaggle:
-- [🎮 Game Annotation & Statistics](https://www.kaggle.com/code/blaku03/gameannotator)
-- [🗺️ Mapping Players to a 2D Pitch](https://www.kaggle.com/code/blaku03/pitchmapping)
-- [🏋️ Training YOLOv11 for Player Detection](https://www.kaggle.com/code/blaku03/gamemodeltraining)
+### 📌 Featured Notebooks 
+* **Game Annotator** [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Blaku03/PitchAnalyzer_AI/blob/main/development_and_analysis/game_annotator.ipynb) [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/code/blaku03/gameannotator) [![GitHub](https://badges.aleen42.com/src/github.svg)](https://github.com/Blaku03/PitchAnalyzer_AI/blob/main/development_and_analysis/game_annotator.ipynb)
 
+* **Pitch Mapping** [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Blaku03/PitchAnalyzer_AI/blob/main/development_and_analysis/pitch_mapping.ipynb) [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/code/blaku03/pitchmapping) [![GitHub](https://badges.aleen42.com/src/github.svg)](https://github.com/Blaku03/PitchAnalyzer_AI/blob/main/development_and_analysis/pitch_mapping.ipynb)
+
+* **Model Training** (we trained our models mainly on kaggle) [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/code/blaku03/gamemodeltraining) [![GitHub](https://badges.aleen42.com/src/github.svg)](https://github.com/Blaku03/PitchAnalyzer_AI/blob/main/development_and_analysis/game_annotator.ipynb)
+
+### Resources
+
+* Our models can be found on kaggle [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/models/blaku03/player-detection/) as well as our labeled dataset [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/datasets/blaku03/pitchannotatoins/data)
 
 ## <a name="project-workflow"></a> ⚙️ Project workflow
 
